@@ -1,0 +1,27 @@
+[project]
+name = "backend"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "mekanizeai", email = "mekanizeai@gmail.com" }
+]
+requires-python = ">=3.13"
+dependencies = [
+    "camoufox>=0.4.11",
+    "crawl4ai>=0.9.0",
+    "mechanicalsoup>=1.4.0",
+    "prek>=0.4.5",
+    "scikit-learn>=1.9.0",
+    "scrapling>=0.2.99",
+    "structlog>=26.1.0",
+    "torch>=2.12.1",
+    "transformers>=4.42,<5",
+]
+
+[project.scripts]
+backend = "backend:main"
+
+[build-system]
+requires = ["uv_build>=0.8.23,<0.9.0"]
+build-backend = "uv_build"

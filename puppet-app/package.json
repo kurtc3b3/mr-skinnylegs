@@ -1,0 +1,14 @@
+{
+  "name": "puppet-app",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Simple Puppeteer web scraper example",
+  "main": "scraper.js",
+  "scripts": {
+    "scrape": "node scraper.js",
+    "pdf": "node pdf.js"
+  },
+  "dependencies": {
+    "puppeteer": "^24.38.0"
+  }
+}
