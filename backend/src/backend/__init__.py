@@ -1,2 +1,4 @@
 def main() -> None:
-    print("Hello from backend!")
+    from backend.api.server import run
+
+    run()

@@ -1,0 +1,40 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: changethis
+      POSTGRES_DB: scraper
+    ports:
+      - "5433:5432"
+    volumes:
+      - scraper-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d scraper"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build: .
+    ports:
+      - "8100:8100"
+    environment:
+      API_HOST: 0.0.0.0
+      API_PORT: 8100
+      SECRET_KEY: changethis
+      ADMIN_USERNAME: admin
+      ADMIN_PASSWORD: changethis
+      POSTGRES_SERVER: db
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: scraper
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: changethis
+    depends_on:
+      db:
+        condition: service_healthy
+    command: >
+      sh -c "uv run scraper-migrate && uv run scraper-api"
+
+volumes:
+  scraper-db-data:
