@@ -1,24 +1,59 @@
-mkdkir obscura-tmp
-cd obscura-tmp
+# Scraper Backend
 
-curl -LO https://github.com/h4ckf0r0day/obscura/releases/latest/download/obscura-aarch64-macos.tar.gz
-tar xzf obscura-aarch64-macos.tar.gz
-./obscura --version
+crawl4ai scrapers plus a **FastAPI + SQLAdmin** service for tracking scrape sources and runs in PostgreSQL.
 
+## Quick start
 
-./obscura fetch https://example.com --eval "document.title"
-docker run -d --name obscura -p 127.0.0.1:9222:9222 h4ckf0r0day/obscura
+```bash
+cd backend
+cp .env.template .env
+docker compose up --build
+```
 
-./obscura serve --port 9222
+- **Admin UI:** http://localhost:8100/admin (`admin` / `changethis` from `.env`)
+- **API health:** http://localhost:8100/api/health
 
+Local dev without Docker:
 
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-rustc --version
-cargo --version
-git clone https://github.com/h4ckf0r0day/obscura.git
-cd obscura
-cargo build --release -p obscura-cli --bin obscura
-# binary: target/release/obscura
+```bash
+docker compose up db -d   # Postgres on localhost:5433
+# set POSTGRES_PORT=5433 in .env when using host port mapping
+uv sync
+uv run scraper-migrate
+uv run scraper-api
+```
 
+## Scraper tracking from scripts
 
-obscura scrape url1 url2 --eval "document.title" --format json
+Wrap a crawl with `track_run` to persist status, timing, and errors:
+
+```python
+from backend.tracking import track_run
+
+async def crawl_nbc_news(url: str):
+    with track_run("nbc_news", url) as run:
+        # ... crawl logic ...
+        run.output_path = str(output_file)
+        run.items_scraped = 1
+```
+
+Default sources (`nbc_news`, `bbc_news`, `pricespy_device`, `wikipedia`) are seeded on migrate.
+
+## Layout
+
+```
+src/backend/
+  api/server.py      # FastAPI app
+  admin/             # SQLAdmin views
+  models.py          # scraper_source, scraper_run
+  tracking.py        # track_run() helper
+  news/              # crawl4ai scrapers
+  ecommerce/
+  wikipedia/
+alembic/             # migrations
+docker-compose.yml   # postgres + api
+```
+
+## Note on fastapi-admin
+
+The [`fastapi-admin`](https://github.com/fastapi-admin/fastapi-admin) package requires Tortoise ORM. This project uses **SQLModel/SQLAlchemy**, so we use **[SQLAdmin](https://github.com/smithyhq/sqladmin)** — the matching admin UI for this stack.
